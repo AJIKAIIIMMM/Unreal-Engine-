@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <Tankogedon/GameStruct.h>
+#include "Projectile.h"
 #include "Cannon.generated.h"
 
 
@@ -39,6 +40,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	ECannonType CannonType = ECannonType::FireProjectile;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	TSubclassOf<AProjectile> ProjectileClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float FireRate = 1.0f;

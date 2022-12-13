@@ -29,6 +29,12 @@ void ACannon::Fire()
 	if(CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
+		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+																		ProjectileSpawnPoint->GetComponentRotation());
+			if (projectile)
+			{
+				projectile->Start();
+			}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 	}
 	else
