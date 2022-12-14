@@ -40,6 +40,30 @@ void ACannon::Fire()
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
+
+		FHitResult hitResult;
+		FCollisionQueryParams traceParams = FCollisionQueryParams();
+		traceParams.AddIgnoredActor(this);
+		traceParams.bReturnPhysicalMaterial = false;
+
+		FVector Start = ProjectileSpawnPoint->GetComponentLocation();
+		FVector End = ProjectileSpawnPoint->GetForwardVector() * FireRange + Start;
+
+		if (GetWorld()->LineTraceSingleByChannel(hitResult, Start, End, ECollisionChannel::ECC_Visibility, traceParams))
+		{
+			DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
+			if (hitResult.GetActor())
+			{
+				AActor* OverlappedActor = hitResult.GetActor();
+				UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
+				OverlappedActor->Destroy();
+			}
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
+		}
+
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 	}
 	if (Projectiles == 0) {
