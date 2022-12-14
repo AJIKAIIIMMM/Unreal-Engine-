@@ -12,10 +12,10 @@ AProjectile::AProjectile()
 
 
 	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMesh"));
-	ProjectileMesh->SetupAttachment(RootComponent);
+	ProjectileMesh->SetupAttachment(sceeneComp);
 
 	ProjectileMesh->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnMeshOverlapBegin);
-	// ProjectileMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
+	ProjectileMesh->SetCollisionObjectType(ECollisionChannel::ECC_GameTraceChannel1);
 
 }
 
