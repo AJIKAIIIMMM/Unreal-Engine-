@@ -11,7 +11,7 @@ enum class ECannonType : uint8
 {
 	FireTrace = 0 UMETA(DisplayName = "Use trace"),
 	FireProjectile = 1 UMETA(DisplayName = "Use projectile"),
-	FireLaser = 2 UMETA(DisplayName = "Use laser"),
+	FireBurntile = 2 UMETA(DisplayName = "Use Burntiles"),
 	FireHeavyBullet = 3 UMETA(DisplayName = "Use heavy bullet")
 };
 

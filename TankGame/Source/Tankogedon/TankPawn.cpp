@@ -120,6 +120,13 @@ void ATankPawn::Reload()
 	}
 }
 
+void ATankPawn::ChangeCannon()
+{
+	InterimCannon = CannonClass;
+	SetupCannon(SecondCannonClass);
+	SecondCannonClass = InterimCannon;
+}
+
 void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 {
 	if(Cannon)

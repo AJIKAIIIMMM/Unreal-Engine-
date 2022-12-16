@@ -26,6 +26,7 @@ public:
 	void FireSpecial();
 	void AutomaticFire();
 	void Reload();
+	void ChangeCannon();
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
 protected:
@@ -53,6 +54,9 @@ protected:
 	TSubclassOf<ACannon> CannonClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	TSubclassOf<ACannon> SecondCannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	class UArrowComponent* CannonSetupPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
@@ -66,6 +70,8 @@ protected:
 
 	UPROPERTY()
 	class ATankPlayerController* TankController;
+
+	TSubclassOf<ACannon> InterimCannon;
 
 private:
 	float targetForwardAxisValue = 0.0f;

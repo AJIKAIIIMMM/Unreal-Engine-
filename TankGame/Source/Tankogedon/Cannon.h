@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include <Tankogedon/GameStruct.h>
 #include "Projectile.h"
+#include "Burntile.h"
 #include "Cannon.generated.h"
 
 
@@ -43,6 +44,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	TSubclassOf<AProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	TSubclassOf<ABurntile> BurntileClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float FireRate = 1.0f;

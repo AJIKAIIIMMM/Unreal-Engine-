@@ -26,18 +26,18 @@ void ACannon::Fire()
 	{
 		return;
 	}
-	if(CannonType == ECannonType::FireProjectile)
+	if (CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
 		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
-																		ProjectileSpawnPoint->GetComponentRotation());
-			if (projectile)
-			{
-				projectile->Start();
-			}
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (projectile)
+		{
+			projectile->Start();
+		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 	}
-	else
+	else if(CannonType == ECannonType::FireTrace)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
 
@@ -66,6 +66,17 @@ void ACannon::Fire()
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 	}
+	else if(CannonType == ECannonType::FireBurntile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (burntile)
+		{
+			burntile->Start();
+		}
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+	}
 	if (Projectiles == 0) {
 		bReadyToFire = false;
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
@@ -78,16 +89,8 @@ void ACannon::FireSpecial()
 	{
 		return;
 	}
-	if (CannonType == ECannonType::FireLaser)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Fire laser");
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
-	}
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
 	if (HeavyBullets == 0) {
 		bReadyToFire = false; 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
@@ -110,8 +113,8 @@ void ACannon::AutomaticFire()
 			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
 			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, AutomateFireRate, true);
 			break;
-		case ECannonType::FireLaser:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Fire laser");
+		case ECannonType::FireBurntile:
+			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Fire Burntile");
 			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, AutomateFireRate, true);
 			break;
 		case ECannonType::FireHeavyBullet:

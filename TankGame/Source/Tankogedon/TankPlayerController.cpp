@@ -16,6 +16,7 @@ void ATankPlayerController::SetupInputComponent()
 	InputComponent->BindAction("FireSpecial", EInputEvent::IE_Pressed, this, &ATankPlayerController::FireSpecial);
 	InputComponent->BindAction("AutomaticFire", EInputEvent::IE_Pressed, this, &ATankPlayerController::AutomaticFire);
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &ATankPlayerController::Reload);
+	InputComponent->BindAction("ChangeCannon", EInputEvent::IE_Pressed, this, &ATankPlayerController::ChangeCannon);
 }
 
 void ATankPlayerController::Tick(float DeltaSeconds)
@@ -93,5 +94,13 @@ void ATankPlayerController::Reload()
 	if (TankPawn)
 	{
 		TankPawn->Reload();
+	}
+}
+
+void ATankPlayerController::ChangeCannon()
+{
+	if (TankPawn)
+	{
+		TankPawn->ChangeCannon();
 	}
 }
