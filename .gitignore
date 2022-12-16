@@ -1,9 +1,9 @@
 # Project fil
-*.sln
+TankGame/*.sln
 # Unnecessary directories
-Binaries/
-.vs/
-DerivedDataCache/
-Intermediate/
-Saved/
-Script/
+TankGame/Binaries/
+TankGame/.vs/
+TankGame/DerivedDataCache/
+TankGame/Intermediate/
+TankGame/Saved/
+TankGame/Script/
