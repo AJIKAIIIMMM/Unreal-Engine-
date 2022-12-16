@@ -1,0 +1,9 @@
+# Project fil
+*.sln
+# Unnecessary directories
+Binaries/
+.vs/
+DerivedDataCache/
+Intermediate/
+Saved/
+Script/
