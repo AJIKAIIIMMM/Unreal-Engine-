@@ -71,12 +71,12 @@ protected:
 	UPROPERTY()
 	class ATankPlayerController* TankController;
 
-	TSubclassOf<ACannon> InterimCannon;
-
 private:
 	float targetForwardAxisValue = 0.0f;
 	float targetRightAxisValue = 0.0f;
 	float targetRotateRightAxisValue = 0.0f;
+
+	bool changeFlag = false;
 
 	void MovementAndRotation(float DeltaTime);
 };

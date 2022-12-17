@@ -122,9 +122,16 @@ void ATankPawn::Reload()
 
 void ATankPawn::ChangeCannon()
 {
-	InterimCannon = CannonClass;
-	SetupCannon(SecondCannonClass);
-	SecondCannonClass = InterimCannon;
+	if (!changeFlag) 
+	{
+		SetupCannon(SecondCannonClass);
+		changeFlag = true;
+	}
+	else
+	{
+		SetupCannon(CannonClass);
+		changeFlag = false;
+	}
 }
 
 void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
