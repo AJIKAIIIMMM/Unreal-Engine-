@@ -21,13 +21,13 @@ protected:
 	UStaticMeshComponent* BurntileMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
-	float MoveSpeed = 100;
+	float MoveSpeed = 150;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
 	float MoveRate = 0.005f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
-	float Damage = 1;
+	float Damage = 2;
 
 	FTimerHandle MovementTimer;
 

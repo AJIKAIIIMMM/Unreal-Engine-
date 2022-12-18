@@ -21,7 +21,7 @@ protected:
 	UStaticMeshComponent* ProjectileMesh;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
-	float MoveSpeed = 100;
+	float MoveSpeed = 200;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement|Speed")
 	float MoveRate = 0.005f;

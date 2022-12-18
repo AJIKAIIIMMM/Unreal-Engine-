@@ -22,7 +22,8 @@ AAmmoBox::AAmmoBox()
 
 }
 
-void AAmmoBox::OnMeshOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AAmmoBox::OnMeshOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, 
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	ATankPawn* TankPawn = Cast<ATankPawn>(OtherActor);
 	if (TankPawn)
