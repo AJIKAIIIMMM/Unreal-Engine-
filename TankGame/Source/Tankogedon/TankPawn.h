@@ -25,9 +25,22 @@ public:
 	void Fire();
 	void FireSpecial();
 	void AutomaticFire();
-	void Reload();
+
+	void ChangeCannon();
+	void AddProjectiles();
+	void AddBurntiles();
+	void AddHeavyBullets();
+
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+
+	bool changeFlag = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	TSubclassOf<ACannon> CannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	TSubclassOf<ACannon> SecondCannonClass;
 protected:
 	virtual void BeginPlay() override;
 
@@ -49,8 +62,7 @@ protected:
 	UPROPERTY()
 	ACannon* Cannon;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-	TSubclassOf<ACannon> CannonClass;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	class UArrowComponent* CannonSetupPoint;
@@ -67,10 +79,13 @@ protected:
 	UPROPERTY()
 	class ATankPlayerController* TankController;
 
+	
 private:
 	float targetForwardAxisValue = 0.0f;
 	float targetRightAxisValue = 0.0f;
 	float targetRotateRightAxisValue = 0.0f;
+
+	
 
 	void MovementAndRotation(float DeltaTime);
 };

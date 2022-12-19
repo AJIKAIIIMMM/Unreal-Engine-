@@ -6,7 +6,7 @@
 
 ACannon::ACannon()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	USceneComponent* SceneComp = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	RootComponent = SceneComp;
@@ -20,25 +20,89 @@ ACannon::ACannon()
 	
 }
 
+void ACannon::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (Projectiles == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
+			FString::Printf(TEXT("NOT ENOUGH PROJECTILES TO SHOOT")));
+	}
+	else if (HeavyBullets == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
+			FString::Printf(TEXT("NOT ENOUGH HEAVY BULLETS TO SHOOT")));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
+			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Projectiles, HeavyBullets));
+	}
+}
+
 void ACannon::Fire()
 {
 	if (!IsReadyToFire())
 	{
 		return;
 	}
-	if(CannonType == ECannonType::FireProjectile)
+	if (CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
+		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (projectile)
+		{
+			projectile->Start();
+		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+		bReadyToFire = false;
 	}
-	else
+	else if(CannonType == ECannonType::FireTrace)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
+
+		FHitResult hitResult;
+		FCollisionQueryParams traceParams = FCollisionQueryParams();
+		traceParams.AddIgnoredActor(this);
+		traceParams.bReturnPhysicalMaterial = false;
+
+		FVector Start = ProjectileSpawnPoint->GetComponentLocation();
+		FVector End = ProjectileSpawnPoint->GetForwardVector() * FireRange + Start;
+
+		if (GetWorld()->LineTraceSingleByChannel(hitResult, Start, End, ECollisionChannel::ECC_Visibility, traceParams))
+		{
+			DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
+			if (hitResult.GetActor())
+			{
+				AActor* OverlappedActor = hitResult.GetActor();
+				UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
+				OverlappedActor->Destroy();
+			}
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
+		}
+
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+	}
+	else if(CannonType == ECannonType::FireBurntile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (burntile)
+		{
+			burntile->Start();
+		}
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+		bReadyToFire = false;
 	}
 	if (Projectiles == 0) {
 		bReadyToFire = false;
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
+		// GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
 	}
 }
 
@@ -48,19 +112,19 @@ void ACannon::FireSpecial()
 	{
 		return;
 	}
-	if (CannonType == ECannonType::FireLaser)
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
+	/*ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+		ProjectileSpawnPoint->GetComponentRotation());
+	if (burntile)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Fire laser");
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
-	}
+		burntile->Start();
+	}*/
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, FireRate, false);
+	bReadyToFire = false;
 	if (HeavyBullets == 0) {
 		bReadyToFire = false; 
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
+		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Red, FString::Printf(TEXT("NOT ENOUGH HEAVY BULLETS TO SHOOT")));
+		// GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
 	}
 }
 
@@ -70,26 +134,67 @@ void ACannon::AutomaticFire()
 	{
 		return;
 	}
-	switch(CannonType)
+	if (CannonType == ECannonType::FireProjectile)
 	{
-		case ECannonType::FireProjectile:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
-			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, AutomateFireRate, true);
-			break;
-		case ECannonType::FireTrace:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
-			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, AutomateFireRate, true);
-			break;
-		case ECannonType::FireLaser:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, "Fire laser");
-			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, AutomateFireRate, true);
-			break;
-		case ECannonType::FireHeavyBullet:
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
-			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceHeavyBullets, AutomateFireRate, true);
-			break;
-		default:
-			return;
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::CallAutomaticFire, AutomateFireRate, true);
+	}
+	else if (CannonType == ECannonType::FireBurntile)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::CallAutomaticFire, AutomateFireRate, true);
+	}
+	else if (CannonType == ECannonType::FireHeavyBullet)
+	{
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::CallAutomaticFire, AutomateFireRate, true);
+	}
+	else return;
+}
+
+void ACannon::CallAutomaticFire()
+{
+	if (CannonType == ECannonType::FireBurntile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (burntile)
+		{
+			burntile->Start();
+		}
+		bReadyToFire = false;
+		if (--RepeatingCallsRemaining <= 0)
+		{
+			GetWorldTimerManager().ClearTimer(ReloadTimer);
+			RepeatingCallsRemaining = 3;
+		}
+		ReduceProjectile();
+	}
+	else if (CannonType == ECannonType::FireProjectile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
+		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (projectile)
+		{
+			projectile->Start();
+		}
+		bReadyToFire = false;
+		if (--RepeatingCallsRemaining <= 0)
+		{
+			GetWorldTimerManager().ClearTimer(ReloadTimer);
+			RepeatingCallsRemaining = 3;
+		}
+		ReduceProjectile();
+	}
+	else if (CannonType == ECannonType::FireHeavyBullet)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Black, "Fire heavy bullet");
+		bReadyToFire = false;
+		if (--RepeatingCallsRemaining <= 0)
+		{
+			GetWorldTimerManager().ClearTimer(ReloadTimer);
+			RepeatingCallsRemaining = 3;
+		}
+		ReduceHeavyBullets();
 	}
 }
 
@@ -98,32 +203,42 @@ bool ACannon::IsReadyToFire()
 	return bReadyToFire && (Projectiles > 0 || HeavyBullets > 0);
 }
 
-void ACannon::Reload()
-{
-	Projectiles = 20;
-	HeavyBullets = 10;
-	bReadyToFire = true;
-}
-
 void ACannon::ReduceProjectile()
 {
 	if (Projectiles == 0) return;
-	else Projectiles--;
-	if (--RepeatingCallsRemaining <= 0)
+	else
 	{
-		GetWorldTimerManager().ClearTimer(ReloadTimer);
-		RepeatingCallsRemaining = 3;
+		Projectiles--;
+		bReadyToFire = true;
 	}
 }
 
 void ACannon::ReduceHeavyBullets()
 {
 	if (HeavyBullets == 0) return;
-	else HeavyBullets--;
+	else
 	{
-		GetWorldTimerManager().ClearTimer(ReloadTimer);
-		RepeatingCallsRemaining = 3;
+		HeavyBullets--;
+		bReadyToFire = true;
 	}
+}
+
+void ACannon::AddProjectiles()
+{
+	Projectiles = 20;
+	bReadyToFire = true;
+}
+
+void ACannon::AddBurntiles()
+{
+	Burntiles = 20;
+	bReadyToFire = true;
+}
+
+void ACannon::AddHeavyBullets()
+{
+	HeavyBullets = 10;
+	bReadyToFire = true;
 }
 
 
