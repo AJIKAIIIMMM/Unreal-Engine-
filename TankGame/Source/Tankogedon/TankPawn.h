@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "DamageTaker.h"
 #include "TankPawn.generated.h"
 
 class UStaticMeshComponent;
 class ACannon;
 UCLASS()
-class TANKOGEDON_API ATankPawn : public APawn
+class TANKOGEDON_API ATankPawn : public APawn, public IDamageTaker
 {
 	GENERATED_BODY()
 
@@ -34,6 +35,14 @@ public:
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
 
+	virtual void TakeDamage(FDamageData DamageData);
+
+	UFUNCTION()
+	void DamageTaken(float Value);
+
+	UFUNCTION()
+	void Die();
+
 	bool changeFlag = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
@@ -54,15 +63,16 @@ protected:
 	class UBoxComponent* BoxCollision;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	class UCameraComponent* Camera;
 
 	UPROPERTY()
-	ACannon* Cannon;
-
-	
+	ACannon* Cannon;	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	class UArrowComponent* CannonSetupPoint;

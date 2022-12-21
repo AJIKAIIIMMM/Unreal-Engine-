@@ -9,6 +9,7 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include <Components/ArrowComponent.h>
 #include "Cannon.h"
+#include <Tankogedon/HealthComponent.h>
 
 
 ATankPawn::ATankPawn()
@@ -38,6 +39,9 @@ ATankPawn::ATankPawn()
 	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CannonSetupPoint"));
 	CannonSetupPoint->SetupAttachment(TurretMesh);
 
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"), false);
+	HealthComponent->OnHealthChanged.AddUObject(this, &ATankPawn::DamageTaken);
+	HealthComponent->OnDie.AddUObject(this, &ATankPawn::Die);
 }
 
 void ATankPawn::Tick(float DeltaTime)
@@ -153,6 +157,25 @@ void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 
 	Cannon = GetWorld()->SpawnActor<ACannon>(newCannonClass, spawnParams);
 	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+void ATankPawn::TakeDamage(FDamageData DamageData)
+{
+	HealthComponent->TakeDamage(DamageData);
+}
+
+void ATankPawn::DamageTaken(float Value)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Health: %f"), HealthComponent->GetHealth());
+}
+
+void ATankPawn::Die()
+{
+	if (Cannon)
+	{
+		Cannon->Destroy();
+	}
+	Destroy();
 }
 
 void ATankPawn::BeginPlay()

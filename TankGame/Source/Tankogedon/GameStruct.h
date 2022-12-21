@@ -15,6 +15,17 @@ enum class ECannonType : uint8
 	FireHeavyBullet = 3 UMETA(DisplayName = "Use heavy bullet")
 };
 
+USTRUCT()
+struct FDamageData
+{
+	GENERATED_BODY()
+
+	float DamageValue;
+
+	AActor* Instigator;
+
+	AActor* DamageMaker;
+};
 
 UCLASS()
 class TANKOGEDON_API UGameStruct : public UObject
