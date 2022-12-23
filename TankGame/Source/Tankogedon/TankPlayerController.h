@@ -32,6 +32,7 @@ protected:
 	void Fire();
 	void FireSpecial();
 	void AutomaticFire();
+
 	void ChangeCannon();
 
 	FVector MousePos;

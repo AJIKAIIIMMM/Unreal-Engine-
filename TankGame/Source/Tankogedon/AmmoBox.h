@@ -21,6 +21,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
 	TSubclassOf<class ACannon> CannonClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Component")
+	int32 Ammo = 5;
+
 	UFUNCTION()
 	virtual void OnMeshOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor*
 			OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool

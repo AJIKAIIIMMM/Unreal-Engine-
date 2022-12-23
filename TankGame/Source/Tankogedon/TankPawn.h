@@ -28,12 +28,9 @@ public:
 	void AutomaticFire();
 
 	void ChangeCannon();
-	void AddProjectiles();
-	void AddBurntiles();
-	void AddHeavyBullets();
-
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+	ACannon* GetCannon() const;
 
 	virtual void TakeDamage(FDamageData DamageData);
 

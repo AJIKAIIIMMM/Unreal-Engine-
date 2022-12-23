@@ -120,30 +120,6 @@ void ATankPawn::ChangeCannon()
 	}
 }
 
-void ATankPawn::AddProjectiles()
-{
-	if (Cannon)
-	{
-		Cannon->AddProjectiles();
-	}
-}
-
-void ATankPawn::AddBurntiles()
-{
-	if (Cannon)
-	{
-		Cannon->AddBurntiles();
-	}
-}
-
-void ATankPawn::AddHeavyBullets()
-{
-	if (Cannon)
-	{
-		Cannon->AddHeavyBullets();
-	}
-}
-
 void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 {
 	if(Cannon)
@@ -157,6 +133,11 @@ void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
 
 	Cannon = GetWorld()->SpawnActor<ACannon>(newCannonClass, spawnParams);
 	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+}
+
+ACannon* ATankPawn::GetCannon() const
+{
+	return Cannon;
 }
 
 void ATankPawn::TakeDamage(FDamageData DamageData)

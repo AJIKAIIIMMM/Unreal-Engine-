@@ -50,17 +50,27 @@ void ACannon::Fire()
 	if (CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
-		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
-			ProjectileSpawnPoint->GetComponentRotation());
-		if (projectile)
+		if (ProjectilePool)
 		{
-			projectile->Start();
+			ProjectilePool->GetProjectile(ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+		}
+		else
+		{
+			AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+				ProjectileSpawnPoint->GetComponentRotation());
+			if (projectile)
+			{
+				projectile->Start();
+			}
 		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 		bReadyToFire = false;
 	}
 	else if(CannonType == ECannonType::FireTrace)
 	{
+		AActor* owner = this; // ACannon
+		AActor* OwnerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
+
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
 
 		FHitResult hitResult;
@@ -87,6 +97,8 @@ void ACannon::Fire()
 		}
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceFireTrace, FireRate, false);
+		bReadyToFire = false;
+		if(FireTraces == 0) bReadyToFire = false;
 	}
 	else if(CannonType == ECannonType::FireBurntile)
 	{
@@ -233,30 +245,28 @@ void ACannon::ReduceFireTrace()
 	}
 }
 
-void ACannon::AddProjectiles()
+void ACannon::AddAmmo(int32 Ammo)
 {
-	Projectiles = 20;
-	bReadyToFire = true;
+	Projectiles += Ammo;
+	HeavyBullets += Ammo;
+	FireTraces += Ammo;
+	Burntiles += Ammo;
 }
 
-void ACannon::AddBurntiles()
+void ACannon::CreateProjectilePool()
 {
-	Burntiles = 20;
-	bReadyToFire = true;
+	if (ProjectilePoolClass)
+	{
+		ProjectilePool = GetWorld()->SpawnActor<AProjectilePool>(ProjectilePoolClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+	}
 }
-
-void ACannon::AddHeavyBullets()
-{
-	HeavyBullets = 10;
-	bReadyToFire = true;
-}
-
-
 
 void ACannon::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	bReadyToFire = true;
+	CreateProjectilePool();
 	
 }
