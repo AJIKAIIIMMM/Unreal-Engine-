@@ -61,16 +61,6 @@ void ATankPawn::Tick(float DeltaTime)
 
 		TurretMesh->SetWorldRotation(newTurretRotation);
 	}
-	if (Cannon->Projectiles == 0 && Cannon->HeavyBullets == 0)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("YOUR AMMO IS EMPTY PRESS 'R' TO RELOAD")));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Cannon->Projectiles, Cannon->HeavyBullets));
-	}
 }
 
 void ATankPawn::MoveForward(float ForwardValue)
@@ -112,11 +102,41 @@ void ATankPawn::AutomaticFire()
 	}
 }
 
-void ATankPawn::Reload()
+void ATankPawn::ChangeCannon()
+{
+	if (!changeFlag) 
+	{
+		SetupCannon(SecondCannonClass);
+		changeFlag = true;
+	}
+	else
+	{
+		SetupCannon(CannonClass);
+		changeFlag = false;
+	}
+}
+
+void ATankPawn::AddProjectiles()
 {
 	if (Cannon)
 	{
-		Cannon->Reload();
+		Cannon->AddProjectiles();
+	}
+}
+
+void ATankPawn::AddBurntiles()
+{
+	if (Cannon)
+	{
+		Cannon->AddBurntiles();
+	}
+}
+
+void ATankPawn::AddHeavyBullets()
+{
+	if (Cannon)
+	{
+		Cannon->AddHeavyBullets();
 	}
 }
 

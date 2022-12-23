@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include <Tankogedon/GameStruct.h>
+#include "Projectile.h"
+#include "Burntile.h"
 #include "Cannon.generated.h"
 
 
@@ -16,17 +18,21 @@ class TANKOGEDON_API ACannon : public AActor
 public:	
 	ACannon();
 
+	virtual void Tick(float DeltaTime) override;
+
 	void Fire();
 	void FireSpecial();
 	void AutomaticFire();
+	void CallAutomaticFire();
 	bool IsReadyToFire();
-	void Reload();
+
 	void ReduceProjectile();
 	void ReduceHeavyBullets();
+	void AddProjectiles();
+	void AddBurntiles();
+	void AddHeavyBullets();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
-	uint8 Projectiles = 20;
-	uint8 HeavyBullets = 10;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -38,7 +44,22 @@ protected:
 	class UArrowComponent* ProjectileSpawnPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	uint8 Projectiles = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	uint8 Burntiles = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	uint8 HeavyBullets = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	ECannonType CannonType = ECannonType::FireProjectile;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	TSubclassOf<AProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	TSubclassOf<ABurntile> BurntileClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float FireRate = 1.0f;
