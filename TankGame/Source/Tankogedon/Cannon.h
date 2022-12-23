@@ -28,6 +28,7 @@ public:
 
 	void ReduceProjectile();
 	void ReduceHeavyBullets();
+	void ReduceFireTrace();
 	void AddProjectiles();
 	void AddBurntiles();
 	void AddHeavyBullets();
@@ -51,6 +52,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	uint8 HeavyBullets = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	uint8 FireTraces = 20;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	ECannonType CannonType = ECannonType::FireProjectile;

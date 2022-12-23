@@ -37,7 +37,7 @@ void ACannon::Tick(float DeltaTime)
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Projectiles, HeavyBullets));
+			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u FireTraces: %u"), Projectiles, HeavyBullets, FireTraces));
 	}
 }
 
@@ -86,7 +86,7 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
 		}
 
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceFireTrace, FireRate, false);
 	}
 	else if(CannonType == ECannonType::FireBurntile)
 	{
@@ -219,6 +219,16 @@ void ACannon::ReduceHeavyBullets()
 	else
 	{
 		HeavyBullets--;
+		bReadyToFire = true;
+	}
+}
+
+void ACannon::ReduceFireTrace()
+{
+	if (FireTraces == 0) return;
+	else
+	{
+		FireTraces--;
 		bReadyToFire = true;
 	}
 }
