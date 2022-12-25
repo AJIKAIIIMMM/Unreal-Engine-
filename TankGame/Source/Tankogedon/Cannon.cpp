@@ -3,6 +3,7 @@
 #include "Cannon.h"
 #include <Components/StaticMeshComponent.h>
 #include <Components/ArrowComponent.h>
+#include <Tankogedon/DamageTaker.h>
 
 ACannon::ACannon()
 {
@@ -86,9 +87,23 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
 			if (hitResult.GetActor())
 			{
-				AActor* OverlappedActor = hitResult.GetActor();
-				UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
-				OverlappedActor->Destroy();
+				IDamageTaker* damageActor = Cast<IDamageTaker>(hitResult.GetActor());
+				if (damageActor)
+				{
+					FDamageData damageData;
+					damageData.DamageMaker = this;
+					damageData.DamageValue = Damage;
+					damageData.Instigator = GetOwner();
+
+					damageActor->TakeDamage(damageData);
+				}
+				else
+				{
+					hitResult.GetActor()->Destroy();
+				}
+				//AActor* OverlappedActor = hitResult.GetActor();
+				//UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
+				//OverlappedActor->Destroy();
 			}
 		}
 		else

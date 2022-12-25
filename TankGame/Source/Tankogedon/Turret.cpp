@@ -13,18 +13,6 @@ ATurret::ATurret()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	HitCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("HitCollider"));
-	RootComponent = HitCollider;
-
-	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	BodyMesh->SetupAttachment(HitCollider);
-
-	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
-	TurretMesh->SetupAttachment(BodyMesh, "ADD_Parts_Here_Socket");
-
-	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CannonSetupPoint"));
-	CannonSetupPoint->SetupAttachment(TurretMesh);
-
 	UStaticMesh* BodyMeshTemp = LoadObject<UStaticMesh>(this, *BodyMeshPath);
 	if (BodyMeshTemp)
 	{
@@ -36,32 +24,11 @@ ATurret::ATurret()
 	{
 		TurretMesh->SetStaticMesh(TurretMeshTemp);
 	}
-
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-	HealthComponent->OnHealthChanged.AddUObject(this, &ATurret::DamageTaked);
-	HealthComponent->OnDie.AddUObject(this, &ATurret::Die);
-}
-
-void ATurret::TakeDamage(FDamageData DamageData)
-{
-	HealthComponent->TakeDamage(DamageData);
-}
-
-void ATurret::Die()
-{
-	Destroy();
-}
-
-void ATurret::DamageTaked(float Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Health: %f"), HealthComponent->GetHealth());
 }
 
 void ATurret::BeginPlay()
 {
 	Super::BeginPlay();
-
-	SetupCannon(CannonClass);
 
 	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
@@ -75,18 +42,6 @@ void ATurret::Destroyed()
 	{
 		Cannon->Destroy();
 	}
-}
-
-void ATurret::SetupCannon(TSubclassOf<ACannon> newCannonClass)
-{
-	if (!newCannonClass)
-	{
-		return;
-	}
-	FActorSpawnParameters params;
-	params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(CannonClass, params);
-	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
 
 void ATurret::Targeting()
@@ -113,14 +68,6 @@ void ATurret::RotateToPlayer()
 	targetRotation.Pitch = currRotation.Pitch;
 	targetRotation.Roll = currRotation.Roll;
 	TurretMesh->SetWorldRotation(FMath::Lerp(currRotation, targetRotation, TargetingSpeed));
-}
-
-void ATurret::Fire()
-{
-	if (Cannon)
-	{
-		Cannon->Fire();
-	}
 }
 
 bool ATurret::IsPlayerInRange()
