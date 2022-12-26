@@ -9,20 +9,12 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include <Components/ArrowComponent.h>
 #include "Cannon.h"
+#include <Tankogedon/HealthComponent.h>
 
 
 ATankPawn::ATankPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
-	RootComponent = BoxCollision;
-
-	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	BodyMesh->SetupAttachment(BoxCollision);
-
-	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
-	TurretMesh->SetupAttachment(BodyMesh);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(BoxCollision);
@@ -33,11 +25,6 @@ ATankPawn::ATankPawn()
 
 	Camera = CreateAbstractDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
-
-	
-	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CannonSetupPoint"));
-	CannonSetupPoint->SetupAttachment(TurretMesh);
-
 }
 
 void ATankPawn::Tick(float DeltaTime)
@@ -61,16 +48,6 @@ void ATankPawn::Tick(float DeltaTime)
 
 		TurretMesh->SetWorldRotation(newTurretRotation);
 	}
-	if (Cannon->Projectiles == 0 && Cannon->HeavyBullets == 0)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("YOUR AMMO IS EMPTY PRESS 'R' TO RELOAD")));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Cannon->Projectiles, Cannon->HeavyBullets));
-	}
 }
 
 void ATankPawn::MoveForward(float ForwardValue)
@@ -88,59 +65,10 @@ void ATankPawn::RotateRight(float RotateValue)
 	targetRotateRightAxisValue = RotateValue;
 }
 
-void ATankPawn::Fire()
-{
-	if (Cannon)
-	{
-		Cannon->Fire();
-	}
-}
-
-void ATankPawn::FireSpecial()
-{
-	if (Cannon)
-	{
-		Cannon->FireSpecial();
-	}
-}
-
-void ATankPawn::AutomaticFire()
-{
-	if (Cannon)
-	{
-		Cannon->AutomaticFire();
-	}
-}
-
-void ATankPawn::Reload()
-{
-	if (Cannon)
-	{
-		Cannon->Reload();
-	}
-}
-
-void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
-{
-	if(Cannon)
-	{
-		Cannon->Destroy();
-	}
-
-	FActorSpawnParameters spawnParams;
-	spawnParams.Instigator = this;
-	spawnParams.Owner = this;
-
-	Cannon = GetWorld()->SpawnActor<ACannon>(newCannonClass, spawnParams);
-	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-}
-
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
 	TankController = Cast<ATankPlayerController>(GetController());
-	SetupCannon(CannonClass);
 }
 
 void ATankPawn::MovementAndRotation(float DeltaTime)
