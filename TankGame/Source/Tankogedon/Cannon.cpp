@@ -14,6 +14,7 @@ ACannon::ACannon()
 
 	CannonMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CannonMesh"));
 	CannonMesh->SetupAttachment(SceneComp);
+	CannonMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
 	ProjectileSpawnPoint->SetupAttachment(CannonMesh);

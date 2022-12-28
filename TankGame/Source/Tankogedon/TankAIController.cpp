@@ -10,6 +10,36 @@ void ATankAIController::Tick(float DeltaTime)
 
 	TankPawn->MoveForward(1.0f);
 
+	
+	TankPawn->RotateRight(GetRotationValue());
+
+	Targeting();
+}
+
+void ATankAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	TankPawn = Cast<ATankPawn>(GetPawn());
+	if (!TankPawn)
+	{
+		return;
+	}
+
+	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	FVector pawnLocation = TankPawn->GetActorLocation();
+	MovementAccurency = TankPawn->GetMovementAccurency();
+	TArray<FVector> points = TankPawn->GetPatrollingPath();
+	for (FVector point : points)
+	{
+		PatrollingPoints.Add(point + pawnLocation);
+	}
+	CurrentPatrollingIndex = 0;
+}
+
+float ATankAIController::GetRotationValue()
+{
 	FVector CurrentPoint = PatrollingPoints[CurrentPatrollingIndex];
 	FVector PawnLocation = TankPawn->GetActorLocation();
 	if (FVector::Distance(CurrentPoint, PawnLocation) <= MovementAccurency)
@@ -40,24 +70,83 @@ void ATankAIController::Tick(float DeltaTime)
 	{
 		RotationValue = -RotationValue;
 	}
-	TankPawn->RotateRight(RotationValue);
+
+	return RotationValue;
 }
 
-void ATankAIController::BeginPlay()
+void ATankAIController::Targeting()
 {
-	Super::BeginPlay();
+	if (CanFire())
+	{
+		Fire();
+	}
+	else
+	{
+		RotateToPlayer();
+	}
+}
 
-	TankPawn = Cast<ATankPawn>(GetPawn());
-	if (!TankPawn)
+void ATankAIController::RotateToPlayer()
+{
+	if (IsPlayerRange())
 	{
-		return;
+		TankPawn->RotateTurretTo(PlayerPawn->GetActorLocation());
 	}
-	FVector pawnLocation = TankPawn->GetActorLocation();
-	MovementAccurency = TankPawn->GetMovementAccurency();
-	TArray<FVector> points = TankPawn->GetPatrollingPath();
-	for (FVector point : points)
+}
+
+bool ATankAIController::IsPlayerRange()
+{
+	if (!PlayerPawn)
 	{
-		PatrollingPoints.Add(point + pawnLocation);
+		return false;
 	}
-	CurrentPatrollingIndex = 0;
+	return FVector::Distance(TankPawn->GetActorLocation(), PlayerPawn->GetActorLocation()) <= TargetingRange;
+}
+
+bool ATankAIController::CanFire()
+{
+	if (!IsPlayerSeen())
+	{
+		return false;
+	}
+	FVector targetingDir = TankPawn->GetTurretForwardVector();
+	FVector dirToPlayer = PlayerPawn->GetActorLocation() - TankPawn->GetActorLocation();
+	dirToPlayer.Normalize();
+
+	float AimAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(targetingDir, dirToPlayer)));
+
+	return AimAngle <= Accurency;
+}
+
+void ATankAIController::Fire()
+{
+	TankPawn->Fire();
+}
+
+bool ATankAIController::IsPlayerSeen()
+{
+	FVector playerPos = PlayerPawn->GetActorLocation();
+	FVector eyesPos = TankPawn->GetEyesPosition();
+
+	FHitResult hitResult;
+	FCollisionQueryParams params = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
+	params.bTraceComplex = true;
+	params.AddIgnoredActor(TankPawn);
+	params.bReturnPhysicalMaterial = false;
+
+
+	if (GetWorld()->LineTraceSingleByChannel(hitResult, eyesPos, playerPos, ECollisionChannel::ECC_Visibility, params))
+	{
+		if (hitResult.GetActor())
+		{
+			if (hitResult.GetActor() == PlayerPawn)
+			{
+				DrawDebugLine(GetWorld(), eyesPos, hitResult.Location, FColor::Green, false, 0.5f, 0, 5);
+			}
+			DrawDebugLine(GetWorld(), eyesPos, hitResult.Location, FColor::Purple, false, 0.5f, 0, 5);
+			return hitResult.GetActor() == PlayerPawn;
+		}
+	}
+	DrawDebugLine(GetWorld(), eyesPos, hitResult.Location, FColor::Red, false, 0.5f, 0, 5);
+	return false;
 }
