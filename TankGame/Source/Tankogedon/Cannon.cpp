@@ -4,6 +4,9 @@
 #include <Components/StaticMeshComponent.h>
 #include <Components/ArrowComponent.h>
 #include <Tankogedon/DamageTaker.h>
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/AudioComponent.h"
+#include "Camera/CameraShakeBase.h"
 
 ACannon::ACannon()
 {
@@ -19,7 +22,13 @@ ACannon::ACannon()
 	ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ArrowComponent"));
 	ProjectileSpawnPoint->SetupAttachment(CannonMesh);
 
-	
+	ShotEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ShotEffect"));
+	ShotEffect->SetupAttachment(ProjectileSpawnPoint);
+	ShotEffect->SetAutoActivate(false);
+
+	AudioEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioEffect"));
+	AudioEffect->SetupAttachment(SceneComp);
+	AudioEffect->SetAutoActivate(false);
 }
 
 void ACannon::Tick(float DeltaTime)
@@ -51,87 +60,27 @@ void ACannon::Fire()
 	}
 	if (CannonType == ECannonType::FireProjectile)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
-		if (ProjectilePool)
-		{
-			ProjectilePool->GetProjectile(ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
-		}
-		else
-		{
-			AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
-				ProjectileSpawnPoint->GetComponentRotation());
-			if (projectile)
-			{
-				projectile->Start();
-			}
-		}
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
-		bReadyToFire = false;
+		FireProjectile();
 	}
 	else if(CannonType == ECannonType::FireTrace)
 	{
-		AActor* owner = this; // ACannon
-		AActor* OwnerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
-
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
-
-		FHitResult hitResult;
-		FCollisionQueryParams traceParams = FCollisionQueryParams();
-		traceParams.AddIgnoredActor(this);
-		traceParams.bReturnPhysicalMaterial = false;
-
-		FVector Start = ProjectileSpawnPoint->GetComponentLocation();
-		FVector End = ProjectileSpawnPoint->GetForwardVector() * FireRange + Start;
-
-		if (GetWorld()->LineTraceSingleByChannel(hitResult, Start, End, ECollisionChannel::ECC_Visibility, traceParams))
-		{
-			DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
-			if (hitResult.GetActor())
-			{
-				IDamageTaker* damageActor = Cast<IDamageTaker>(hitResult.GetActor());
-				if (damageActor)
-				{
-					FDamageData damageData;
-					damageData.DamageMaker = this;
-					damageData.DamageValue = Damage;
-					damageData.Instigator = GetOwner();
-
-					damageActor->TakeDamage(damageData);
-				}
-				else
-				{
-					hitResult.GetActor()->Destroy();
-				}
-				//AActor* OverlappedActor = hitResult.GetActor();
-				//UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
-				//OverlappedActor->Destroy();
-			}
-		}
-		else
-		{
-			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
-		}
-
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceFireTrace, FireRate, false);
-		bReadyToFire = false;
-		if(FireTraces == 0) bReadyToFire = false;
+		FireTrace();
 	}
 	else if(CannonType == ECannonType::FireBurntile)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
-		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
-			ProjectileSpawnPoint->GetComponentRotation());
-		if (burntile)
-		{
-			burntile->Start();
-		}
-		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
-		bReadyToFire = false;
+		FireBurntile();
 	}
 	if (Projectiles == 0) {
 		bReadyToFire = false;
 		// GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
 	}
+
+	if (ShotEffect)
+		ShotEffect->ActivateSystem();
+	if (AudioEffect)
+		AudioEffect->Play();
+	if (CameraShake)
+		GetWorld()->GetFirstPlayerController()->ClientPlayCameraShake(CameraShake);
 }
 
 void ACannon::FireSpecial()
@@ -229,6 +178,88 @@ void ACannon::CallAutomaticFire()
 bool ACannon::IsReadyToFire()
 {
 	return bReadyToFire && (Projectiles > 0 || HeavyBullets > 0);
+}
+
+void ACannon::FireProjectile()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
+	if (ProjectilePool)
+	{
+		ProjectilePool->GetProjectile(ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+	}
+	else
+	{
+		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (projectile)
+		{
+			projectile->Start();
+		}
+	}
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+	bReadyToFire = false;
+}
+
+void ACannon::FireTrace()
+{
+	AActor* owner = this; // ACannon
+	AActor* OwnerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
+
+	FHitResult hitResult;
+	FCollisionQueryParams traceParams = FCollisionQueryParams();
+	traceParams.AddIgnoredActor(this);
+	traceParams.bReturnPhysicalMaterial = false;
+
+	FVector Start = ProjectileSpawnPoint->GetComponentLocation();
+	FVector End = ProjectileSpawnPoint->GetForwardVector() * FireRange + Start;
+
+	if (GetWorld()->LineTraceSingleByChannel(hitResult, Start, End, ECollisionChannel::ECC_Visibility, traceParams))
+	{
+		DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
+		if (hitResult.GetActor())
+		{
+			IDamageTaker* damageActor = Cast<IDamageTaker>(hitResult.GetActor());
+			if (damageActor)
+			{
+				FDamageData damageData;
+				damageData.DamageMaker = this;
+				damageData.DamageValue = Damage;
+				damageData.Instigator = GetOwner();
+
+				damageActor->TakeDamage(damageData);
+			}
+			else
+			{
+				hitResult.GetActor()->Destroy();
+			}
+			//AActor* OverlappedActor = hitResult.GetActor();
+			//UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
+			//OverlappedActor->Destroy();
+		}
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceFireTrace, FireRate, false);
+	bReadyToFire = false;
+	if (FireTraces == 0) bReadyToFire = false;
+}
+
+void ACannon::FireBurntile()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+	ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+		ProjectileSpawnPoint->GetComponentRotation());
+	if (burntile)
+	{
+		burntile->Start();
+	}
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+	bReadyToFire = false;
 }
 
 void ACannon::ReduceProjectile()

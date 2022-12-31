@@ -36,6 +36,7 @@ void ATankAIController::BeginPlay()
 		PatrollingPoints.Add(point + pawnLocation);
 	}
 	CurrentPatrollingIndex = 0;
+	GetWorld()->GetTimerManager().SetTimer(TankPawn->ChangeWeaponTimer, TankPawn,&AMachinePawn::ChangeCannon, TankPawn->TimeToChangeWeapon, true);
 }
 
 float ATankAIController::GetRotationValue()
@@ -88,10 +89,7 @@ void ATankAIController::Targeting()
 
 void ATankAIController::RotateToPlayer()
 {
-	if (IsPlayerRange())
-	{
-		TankPawn->RotateTurretTo(PlayerPawn->GetActorLocation());
-	}
+	TankPawn->RotateTurretTo(PlayerPawn->GetActorLocation());
 }
 
 bool ATankAIController::IsPlayerRange()
@@ -127,13 +125,10 @@ bool ATankAIController::IsPlayerSeen()
 {
 	FVector playerPos = PlayerPawn->GetActorLocation();
 	FVector eyesPos = TankPawn->GetEyesPosition();
+	FCollisionQueryParams params = FCollisionQueryParams();
+	params.AddIgnoredActor(TankPawn);
 
 	FHitResult hitResult;
-	FCollisionQueryParams params = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
-	params.bTraceComplex = true;
-	params.AddIgnoredActor(TankPawn);
-	params.bReturnPhysicalMaterial = false;
-
 
 	if (GetWorld()->LineTraceSingleByChannel(hitResult, eyesPos, playerPos, ECollisionChannel::ECC_Visibility, params))
 	{

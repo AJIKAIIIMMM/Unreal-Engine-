@@ -28,6 +28,10 @@ public:
 	void CallAutomaticFire();
 	bool IsReadyToFire();
 
+	void FireProjectile();
+	void FireTrace();
+	void FireBurntile();
+
 	void ReduceProjectile();
 	void ReduceHeavyBullets();
 	void ReduceFireTrace();
@@ -90,6 +94,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float BulletsAmount = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	class UParticleSystemComponent* ShotEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	TSubclassOf<class UCameraShakeBase> CameraShake;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	class UAudioComponent* AudioEffect;
 
 	int8 RepeatingCallsRemaining = 3;
 	bool bReadyToFire = true;

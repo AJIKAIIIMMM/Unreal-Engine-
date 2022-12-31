@@ -75,11 +75,6 @@ void ATankPawn::RotateTurretTo(FVector TargetPosition)
 	TurretMesh->SetWorldRotation(newTurretRotation);
 }
 
-FVector ATankPawn::GetEyesPosition()
-{
-	return CannonSetupPoint->GetComponentLocation();
-}
-
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();

@@ -29,8 +29,6 @@ public:
 	UFUNCTION()
 	void RotateTurretTo(FVector TargetPosition);
 
-	FVector GetEyesPosition();
-
 protected:
 	virtual void BeginPlay() override;
 
