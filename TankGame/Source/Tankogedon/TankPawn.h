@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
+#include "MachinePawn.h"
 #include "TankPawn.generated.h"
 
-class UStaticMeshComponent;
-class ACannon;
+class ATargetPoint;
 UCLASS()
-class TANKOGEDON_API ATankPawn : public APawn
+class TANKOGEDON_API ATankPawn : public AMachinePawn
 {
 	GENERATED_BODY()
 
@@ -21,39 +20,36 @@ public:
 	void MoveForward(float ForwardValue);
 	void MoveRight(float RightValue);
 	void RotateRight(float RotateValue);
+	
+	UFUNCTION()
+	TArray<FVector> GetPatrollingPath() const;
 
-	void Fire();
-	void FireSpecial();
-	void AutomaticFire();
-	void Reload();
+	UFUNCTION()
+	void SetPatrollingPath(TArray<ATargetPoint*> newPatrollingPath);
 
-	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+	UFUNCTION()
+	float GetMovementAccurency() const { return MovementAccurency; }
+
+	UFUNCTION()
+	FVector GetTurretForwardVector() const;
+
+	UFUNCTION()
+	void RotateTurretTo(FVector TargetPosition);
+
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMeshComponent* BodyMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", Meta = (MakeEditWidget = true))
+	TArray<ATargetPoint*> PatrollingPath;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	UStaticMeshComponent* TurretMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
-	class UBoxComponent* BoxCollision;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float MovementAccurency = 50;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	class UCameraComponent* Camera;
-
-	UPROPERTY()
-	ACannon* Cannon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-	TSubclassOf<ACannon> CannonClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
-	class UArrowComponent* CannonSetupPoint;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float MoveSpeed = 100.0f;
@@ -67,10 +63,13 @@ protected:
 	UPROPERTY()
 	class ATankPlayerController* TankController;
 
+	
 private:
 	float targetForwardAxisValue = 0.0f;
 	float targetRightAxisValue = 0.0f;
 	float targetRotateRightAxisValue = 0.0f;
+
+	
 
 	void MovementAndRotation(float DeltaTime);
 };

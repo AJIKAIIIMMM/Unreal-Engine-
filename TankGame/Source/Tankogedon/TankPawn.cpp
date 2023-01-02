@@ -9,20 +9,13 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include <Components/ArrowComponent.h>
 #include "Cannon.h"
+#include <Tankogedon/HealthComponent.h>
+#include "Engine/TargetPoint.h"
 
 
 ATankPawn::ATankPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("RootComponent"));
-	RootComponent = BoxCollision;
-
-	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BodyMesh"));
-	BodyMesh->SetupAttachment(BoxCollision);
-
-	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretMesh"));
-	TurretMesh->SetupAttachment(BodyMesh);
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(BoxCollision);
@@ -33,11 +26,6 @@ ATankPawn::ATankPawn()
 
 	Camera = CreateAbstractDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
-
-	
-	CannonSetupPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("CannonSetupPoint"));
-	CannonSetupPoint->SetupAttachment(TurretMesh);
-
 }
 
 void ATankPawn::Tick(float DeltaTime)
@@ -51,25 +39,7 @@ void ATankPawn::Tick(float DeltaTime)
 	if (TankController)
 	{
 		FVector mousePos = TankController->GetMousePosition();
-		FRotator targetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), mousePos);
-		FRotator TurretRotation = TurretMesh->GetComponentRotation();
-		targetRotation.Pitch = TurretRotation.Pitch;
-		targetRotation.Roll = TurretRotation.Roll;
-
-		FRotator newTurretRotation = FMath::Lerp(TurretRotation, targetRotation, TurretRotationInterpolationKey);
-		// UE_LOG(LogTemp, Warning, TEXT("targetRotation: %s, LerpRotation: %s"), *targetRotation.ToString(), *newTurretRotation.ToString());
-
-		TurretMesh->SetWorldRotation(newTurretRotation);
-	}
-	if (Cannon->Projectiles == 0 && Cannon->HeavyBullets == 0)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("YOUR AMMO IS EMPTY PRESS 'R' TO RELOAD")));
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Cannon->Projectiles, Cannon->HeavyBullets));
+		RotateTurretTo(mousePos);
 	}
 }
 
@@ -88,59 +58,43 @@ void ATankPawn::RotateRight(float RotateValue)
 	targetRotateRightAxisValue = RotateValue;
 }
 
-void ATankPawn::Fire()
+TArray<FVector> ATankPawn::GetPatrollingPath() const
 {
-	if (Cannon)
+	TArray<FVector> points;
+	for (ATargetPoint* point : PatrollingPath)
 	{
-		Cannon->Fire();
+		points.Add(point->GetActorLocation());
 	}
+	return points;
 }
 
-void ATankPawn::FireSpecial()
+void ATankPawn::SetPatrollingPath(TArray<ATargetPoint*> newPatrollingPath)
 {
-	if (Cannon)
-	{
-		Cannon->FireSpecial();
-	}
+	PatrollingPath = newPatrollingPath;
 }
 
-void ATankPawn::AutomaticFire()
+FVector ATankPawn::GetTurretForwardVector() const
 {
-	if (Cannon)
-	{
-		Cannon->AutomaticFire();
-	}
+	return TurretMesh->GetForwardVector();
 }
 
-void ATankPawn::Reload()
+void ATankPawn::RotateTurretTo(FVector TargetPosition)
 {
-	if (Cannon)
-	{
-		Cannon->Reload();
-	}
-}
+	FRotator targetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetPosition);
+	FRotator TurretRotation = TurretMesh->GetComponentRotation();
+	targetRotation.Pitch = TurretRotation.Pitch;
+	targetRotation.Roll = TurretRotation.Roll;
 
-void ATankPawn::SetupCannon(TSubclassOf<ACannon> newCannonClass)
-{
-	if(Cannon)
-	{
-		Cannon->Destroy();
-	}
+	FRotator newTurretRotation = FMath::Lerp(TurretRotation, targetRotation, TurretRotationInterpolationKey);
+	// UE_LOG(LogTemp, Warning, TEXT("targetRotation: %s, LerpRotation: %s"), *targetRotation.ToString(), *newTurretRotation.ToString());
 
-	FActorSpawnParameters spawnParams;
-	spawnParams.Instigator = this;
-	spawnParams.Owner = this;
-
-	Cannon = GetWorld()->SpawnActor<ACannon>(newCannonClass, spawnParams);
-	Cannon->AttachToComponent(CannonSetupPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	TurretMesh->SetWorldRotation(newTurretRotation);
 }
 
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
-
 	TankController = Cast<ATankPlayerController>(GetController());
-	SetupCannon(CannonClass);
 }
 
 void ATankPawn::MovementAndRotation(float DeltaTime)
