@@ -5,12 +5,13 @@
 #include "GameFramework/Pawn.h"
 #include "DamageTaker.h"
 #include "Cannon.h"
+#include "Scorable.h"
 #include "MachinePawn.generated.h"
 
 class UStaticMeshComponent;
 class ACannon;
 UCLASS()
-class TANKOGEDON_API AMachinePawn : public APawn, public IDamageTaker
+class TANKOGEDON_API AMachinePawn : public APawn, public IDamageTaker, public IScorable
 {
 	GENERATED_BODY()
 
@@ -25,6 +26,17 @@ public:
 
 	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
 	ACannon* GetCannon() const;
+
+	//Scorable
+	virtual float GetPoints() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scorable")
+	float ScoreValue = 0;
+
+	UFUNCTION()
+	void ShowScore(float Value);
+
+	float Score = 0.0f;
 
 	virtual void TakeDamage(FDamageData DamageData);
 

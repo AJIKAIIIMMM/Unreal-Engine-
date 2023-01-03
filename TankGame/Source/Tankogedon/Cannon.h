@@ -17,8 +17,11 @@ class TANKOGEDON_API ACannon : public AActor
 {
 	GENERATED_BODY()
 	
+	DECLARE_EVENT_OneParam(ACannon, FChangeScore, float);
 public:	
 	ACannon();
+
+	FChangeScore ScoreChanged;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -37,6 +40,11 @@ public:
 	void ReduceFireTrace();
 
 	void AddAmmo(int32 Ammo);
+
+	float Score = 0.0f;
+
+	UFUNCTION()
+	void AddScore(float ScoreValue);
 
 	void CreateProjectilePool();
 

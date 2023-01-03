@@ -7,6 +7,7 @@
 #include "Engine/TargetPoint.h"
 #include "TankFactory.generated.h"
 
+class AMapLoader;
 UCLASS()
 class TANKOGEDON_API ATankFactory : public AActor, public IDamageTaker
 {
@@ -16,6 +17,10 @@ public:
 	ATankFactory();
 
 	virtual void TakeDamage(FDamageData DamageData) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spawn tanks params")
+	AMapLoader* LinkedMapLoader;
+
 
 protected:
 	virtual void BeginPlay() override;

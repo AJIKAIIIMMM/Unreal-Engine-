@@ -15,7 +15,6 @@ class TANKOGEDON_API AProjectilePool : public AActor
 public:	
 	void GetProjectile(FVector spawnLocation, FRotator spawnRotation);
 
-
 protected:
 	virtual void BeginPlay() override;
 

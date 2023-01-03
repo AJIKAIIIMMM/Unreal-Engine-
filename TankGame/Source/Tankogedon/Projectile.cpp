@@ -3,6 +3,7 @@
 #include "Projectile.h"
 #include "Components/StaticMeshComponent.h"
 #include <Tankogedon/DamageTaker.h>
+#include <Tankogedon/Scorable.h>
 
 
 AProjectile::AProjectile()
@@ -53,6 +54,15 @@ void AProjectile::OnMeshOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 	if (OtherActor != owner || OtherActor != OwnerByOwner)
 	{
 		IDamageTaker* DamageActor = Cast<IDamageTaker>(OtherActor);
+		IScorable* ScorableActor = Cast<IScorable>(OtherActor);
+
+		float ScoreValue = 0.0f;
+
+		if (ScorableActor)
+		{
+			ScoreValue = ScorableActor->GetPoints();
+		}
+
 		if (DamageActor)
 		{
 			FDamageData damageData;
@@ -61,6 +71,14 @@ void AProjectile::OnMeshOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor
 			damageData.DamageMaker = this;
 
 			DamageActor->TakeDamage(damageData);
+
+			if (OtherActor->IsActorBeingDestroyed() && ScoreValue != 0.0f)
+			{
+				if (OnKilled.IsBound())
+				{
+					OnKilled.Broadcast(ScoreValue);
+				}
+			}
 		}
 		else
 		{

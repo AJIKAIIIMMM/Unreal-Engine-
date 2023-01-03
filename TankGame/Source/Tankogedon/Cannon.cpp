@@ -193,6 +193,8 @@ void ACannon::FireProjectile()
 			ProjectileSpawnPoint->GetComponentRotation());
 		if (projectile)
 		{
+			projectile->OnKilled.AddUObject(this, &ACannon::AddScore);
+			projectile->SetOwner(this);
 			projectile->Start();
 		}
 	}
@@ -298,6 +300,14 @@ void ACannon::AddAmmo(int32 Ammo)
 	HeavyBullets += Ammo;
 	FireTraces += Ammo;
 	Burntiles += Ammo;
+}
+
+void ACannon::AddScore(float ScoreValue)
+{
+	if (ScoreChanged.IsBound())
+	{
+		ScoreChanged.Broadcast(ScoreValue);
+	}
 }
 
 void ACannon::CreateProjectilePool()

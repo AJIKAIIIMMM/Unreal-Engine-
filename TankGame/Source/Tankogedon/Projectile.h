@@ -10,6 +10,8 @@ UCLASS()
 class TANKOGEDON_API AProjectile : public AActor
 {
 	GENERATED_BODY()
+
+	DECLARE_EVENT_OneParam(AProjectile, FOnKill, float);
 	
 public:	
 	AProjectile();
@@ -19,6 +21,8 @@ public:
 	void Deactivate();
 
 	bool bIsActivation = false;
+
+	FOnKill OnKilled;
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")

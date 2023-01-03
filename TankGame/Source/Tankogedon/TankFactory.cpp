@@ -6,6 +6,7 @@
 #include "Components\ArrowComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TankPawn.h"
+#include "MapLoader.h"
 
 ATankFactory::ATankFactory()
 {
@@ -37,6 +38,8 @@ void ATankFactory::TakeDamage(FDamageData DamageData)
 void ATankFactory::BeginPlay()
 {
 	Super::BeginPlay();
+	if (LinkedMapLoader)
+		LinkedMapLoader->SetIsActivated(false);
 	
 	FTimerHandle spawnTimer;
 	GetWorld()->GetTimerManager().SetTimer(spawnTimer, this, &ATankFactory::SpawnNewTank, 
@@ -50,6 +53,8 @@ void ATankFactory::DamageTaken(float DamageValue)
 
 void ATankFactory::Die()
 {
+	if (LinkedMapLoader)
+		LinkedMapLoader->SetIsActivated(true);
 	Destroy();
 }
 
