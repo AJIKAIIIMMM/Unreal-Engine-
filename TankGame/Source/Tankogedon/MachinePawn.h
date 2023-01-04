@@ -1,0 +1,88 @@
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "GameFramework/Pawn.h"
+#include "DamageTaker.h"
+#include "Cannon.h"
+#include "Scorable.h"
+#include "MachinePawn.generated.h"
+
+class UStaticMeshComponent;
+class ACannon;
+UCLASS()
+class TANKOGEDON_API AMachinePawn : public APawn, public IDamageTaker, public IScorable
+{
+	GENERATED_BODY()
+
+public:
+	AMachinePawn();
+
+	void Fire();
+	void FireSpecial();
+	void AutomaticFire();
+
+	void ChangeCannon();
+
+	void SetupCannon(TSubclassOf<ACannon> newCannonClass);
+	ACannon* GetCannon() const;
+
+	//Scorable
+	virtual float GetPoints() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scorable")
+	float ScoreValue = 0;
+
+	UFUNCTION()
+	void ShowScore(float Value);
+
+	float Score = 0.0f;
+
+	virtual void TakeDamage(FDamageData DamageData);
+
+	UFUNCTION()
+	void DamageTaken(float Value);
+
+	UFUNCTION()
+	void Die();
+
+	UFUNCTION()
+	FVector GetEyesPosition();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	TSubclassOf<ACannon> CannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	TSubclassOf<ACannon> SecondCannonClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	float TimeToChangeWeapon = 5.0f;
+
+	bool changeFlag = false;
+
+	FTimerHandle ChangeWeaponTimer;
+protected:
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	UStaticMeshComponent* BodyMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	UStaticMeshComponent* TurretMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UBoxComponent* BoxCollision;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
+	class UHealthComponent* HealthComponent;
+
+	UPROPERTY()
+	ACannon* Cannon;	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	class UArrowComponent* CannonSetupPoint;
+
+	
+
+	
+};
