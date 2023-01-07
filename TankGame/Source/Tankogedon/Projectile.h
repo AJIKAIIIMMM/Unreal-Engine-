@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
+#include <Tankogedon/DamageTaker.h>
+#include <Tankogedon/Scorable.h>
 #include "Projectile.generated.h"
 
 UCLASS()
@@ -16,7 +19,7 @@ class TANKOGEDON_API AProjectile : public AActor
 public:	
 	AProjectile();
 
-	void Start();
+	virtual void Start();
 
 	void Deactivate();
 
@@ -43,6 +46,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
 	float PushForce = 1000.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Explosion")
+	bool bIsExplosion = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Explosion")
+	float ExplodeRadius = 100.0f;
+
 	FTimerHandle MovementTimer;
 	FTimerHandle DeactivateTimer;
 
@@ -52,6 +61,11 @@ protected:
 			bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
-	void Move();
+	virtual void Move();
 
+	UFUNCTION()
+	virtual void Explode();
+
+	void ActorDamage(IDamageTaker* damageActor);
+	void PhysicsUse(UPrimitiveComponent* someMesh, AActor* OtherActor);
 };
