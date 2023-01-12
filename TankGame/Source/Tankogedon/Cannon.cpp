@@ -127,6 +127,18 @@ void ACannon::Fire()
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 		bReadyToFire = false;
 	}
+	else if(CannonType == ECannonType::FireBurntile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (burntile)
+		{
+			burntile->Start();
+		}
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+		bReadyToFire = false;
+	}
 	if (Projectiles == 0) {
 		bReadyToFire = false;
 		// GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::Reload, FireRate, false);
