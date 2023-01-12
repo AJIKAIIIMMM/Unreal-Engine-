@@ -19,9 +19,24 @@ public:
 	void MoveForward(float ForwardValue);
 	void MoveRight(float RightValue);
 	void RotateRight(float RotateValue);
+	
+	UFUNCTION()
+	TArray<FVector> GetPatrollingPath() const { return PatrollingPath; }
+	UFUNCTION()
+	float GetMovementAccurency() const { return MovementAccurency; }
+	UFUNCTION()
+	FVector GetTurretForwardVector() const;
+	UFUNCTION()
+	void RotateTurretTo(FVector TargetPosition);
 
 protected:
 	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", Meta = (MakeEditWidget = true))
+	TArray<FVector> PatrollingPath;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float MovementAccurency = 50;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components")
 	class USpringArmComponent* SpringArm;

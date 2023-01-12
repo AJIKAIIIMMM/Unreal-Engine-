@@ -34,13 +34,21 @@ public:
 	UFUNCTION()
 	void Die();
 
+	UFUNCTION()
+	FVector GetEyesPosition();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	TSubclassOf<ACannon> CannonClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	TSubclassOf<ACannon> SecondCannonClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
+	float TimeToChangeWeapon = 5.0f;
+
 	bool changeFlag = false;
+
+	FTimerHandle ChangeWeaponTimer;
 protected:
 	virtual void BeginPlay() override;
 
@@ -61,4 +69,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cannon")
 	class UArrowComponent* CannonSetupPoint;
+
+	
+
+	
 };

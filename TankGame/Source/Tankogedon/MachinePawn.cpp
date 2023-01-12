@@ -3,6 +3,7 @@
 #include "Components\BoxComponent.h"
 #include "Components\StaticMeshComponent.h"
 #include "Components\ArrowComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "HealthComponent.h"
 
 AMachinePawn::AMachinePawn()
@@ -101,6 +102,11 @@ void AMachinePawn::Die()
 		Cannon->Destroy();
 	}
 	Destroy();
+}
+
+FVector AMachinePawn::GetEyesPosition()
+{
+	return CannonSetupPoint->GetComponentLocation();
 }
 
 void AMachinePawn::BeginPlay()
