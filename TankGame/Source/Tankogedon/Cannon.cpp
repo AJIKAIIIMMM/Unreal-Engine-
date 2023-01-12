@@ -3,6 +3,7 @@
 #include "Cannon.h"
 #include <Components/StaticMeshComponent.h>
 #include <Components/ArrowComponent.h>
+#include <Tankogedon/DamageTaker.h>
 
 ACannon::ACannon()
 {
@@ -37,7 +38,7 @@ void ACannon::Tick(float DeltaTime)
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0.01f, FColor::Yellow,
-			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u"), Projectiles, HeavyBullets));
+			FString::Printf(TEXT("Projectiles: %u Heavy Bullets: %u FireTraces: %u"), Projectiles, HeavyBullets, FireTraces));
 	}
 }
 
@@ -50,17 +51,27 @@ void ACannon::Fire()
 	if (CannonType == ECannonType::FireProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Purple, "Fire Projectile");
-		AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
-			ProjectileSpawnPoint->GetComponentRotation());
-		if (projectile)
+		if (ProjectilePool)
 		{
-			projectile->Start();
+			ProjectilePool->GetProjectile(ProjectileSpawnPoint->GetComponentLocation(), ProjectileSpawnPoint->GetComponentRotation());
+		}
+		else
+		{
+			AProjectile* projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, ProjectileSpawnPoint->GetComponentLocation(),
+				ProjectileSpawnPoint->GetComponentRotation());
+			if (projectile)
+			{
+				projectile->Start();
+			}
 		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
 		bReadyToFire = false;
 	}
 	else if(CannonType == ECannonType::FireTrace)
 	{
+		AActor* owner = this; // ACannon
+		AActor* OwnerByOwner = owner != nullptr ? owner->GetOwner() : nullptr;
+
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, "Fire Trace");
 
 		FHitResult hitResult;
@@ -76,9 +87,23 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), Start, hitResult.Location, FColor::Red, false, 1.0f, 0, 5);
 			if (hitResult.GetActor())
 			{
-				AActor* OverlappedActor = hitResult.GetActor();
-				UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
-				OverlappedActor->Destroy();
+				IDamageTaker* damageActor = Cast<IDamageTaker>(hitResult.GetActor());
+				if (damageActor)
+				{
+					FDamageData damageData;
+					damageData.DamageMaker = this;
+					damageData.DamageValue = Damage;
+					damageData.Instigator = GetOwner();
+
+					damageActor->TakeDamage(damageData);
+				}
+				else
+				{
+					hitResult.GetActor()->Destroy();
+				}
+				//AActor* OverlappedActor = hitResult.GetActor();
+				//UE_LOG(LogTemp, Warning, TEXT("Actor: %s. "), *OverlappedActor->GetName());
+				//OverlappedActor->Destroy();
 			}
 		}
 		else
@@ -86,7 +111,21 @@ void ACannon::Fire()
 			DrawDebugLine(GetWorld(), Start, End, FColor::Yellow, false, 1.0f, 0, 5);
 		}
 
+		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceFireTrace, FireRate, false);
+		bReadyToFire = false;
+		if(FireTraces == 0) bReadyToFire = false;
+	}
+	else if(CannonType == ECannonType::FireBurntile)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, "Fire Burntile");
+		ABurntile* burntile = GetWorld()->SpawnActor<ABurntile>(BurntileClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+		if (burntile)
+		{
+			burntile->Start();
+		}
 		GetWorld()->GetTimerManager().SetTimer(ReloadTimer, this, &ACannon::ReduceProjectile, FireRate, false);
+		bReadyToFire = false;
 	}
 	else if(CannonType == ECannonType::FireBurntile)
 	{
@@ -223,30 +262,38 @@ void ACannon::ReduceHeavyBullets()
 	}
 }
 
-void ACannon::AddProjectiles()
+void ACannon::ReduceFireTrace()
 {
-	Projectiles = 20;
-	bReadyToFire = true;
+	if (FireTraces == 0) return;
+	else
+	{
+		FireTraces--;
+		bReadyToFire = true;
+	}
 }
 
-void ACannon::AddBurntiles()
+void ACannon::AddAmmo(int32 Ammo)
 {
-	Burntiles = 20;
-	bReadyToFire = true;
+	Projectiles += Ammo;
+	HeavyBullets += Ammo;
+	FireTraces += Ammo;
+	Burntiles += Ammo;
 }
 
-void ACannon::AddHeavyBullets()
+void ACannon::CreateProjectilePool()
 {
-	HeavyBullets = 10;
-	bReadyToFire = true;
+	if (ProjectilePoolClass)
+	{
+		ProjectilePool = GetWorld()->SpawnActor<AProjectilePool>(ProjectilePoolClass, ProjectileSpawnPoint->GetComponentLocation(),
+			ProjectileSpawnPoint->GetComponentRotation());
+	}
 }
-
-
 
 void ACannon::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	bReadyToFire = true;
+	CreateProjectilePool();
 	
 }

@@ -15,6 +15,10 @@ public:
 	AProjectile();
 
 	void Start();
+
+	void Deactivate();
+
+	bool bIsActivation = false;
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
@@ -27,9 +31,13 @@ protected:
 	float MoveRate = 0.005f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
-	float Damage = 1;
+	float Damage = 1.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
+	float DeactivateTime = 5.0f;
 
 	FTimerHandle MovementTimer;
+	FTimerHandle DeactivateTimer;
 
 	UFUNCTION()
 	void OnMeshOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor*

@@ -7,7 +7,9 @@
 #include <Tankogedon/GameStruct.h>
 #include "Projectile.h"
 #include "Burntile.h"
+#include <Tankogedon/ProjectilePool.h>
 #include "Cannon.generated.h"
+
 
 
 UCLASS()
@@ -28,11 +30,12 @@ public:
 
 	void ReduceProjectile();
 	void ReduceHeavyBullets();
-	void AddProjectiles();
-	void AddBurntiles();
-	void AddHeavyBullets();
+	void ReduceFireTrace();
 
-	
+	void AddAmmo(int32 Ammo);
+
+	void CreateProjectilePool();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -53,7 +56,16 @@ protected:
 	uint8 HeavyBullets = 10;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	uint8 FireTraces = 20;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	ECannonType CannonType = ECannonType::FireProjectile;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	TSubclassOf<AProjectilePool> ProjectilePoolClass;
+
+	UPROPERTY()
+	AProjectilePool* ProjectilePool;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	TSubclassOf<AProjectile> ProjectileClass;
@@ -72,6 +84,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float Damage = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
+	float FireTraceDamage = 0.5f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fire params")
 	float BulletsAmount = 2.0f;
